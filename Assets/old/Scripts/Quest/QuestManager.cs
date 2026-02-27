@@ -49,7 +49,7 @@ public class QuestManager : MonoBehaviour
     {
         if (questText != null)
         {
-            questText.text = "ของที่ได้: " + currentItems + " / " + requiredItems;
+            questText.text = "ตามหาหนู: " + currentItems + " / " + requiredItems;
         }
     }
 }

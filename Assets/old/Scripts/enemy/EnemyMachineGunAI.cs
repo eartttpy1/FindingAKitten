@@ -35,16 +35,18 @@ public class EnemyMachineGunAI : MonoBehaviour
     // ---------------------------------------------------------
     // [ADDED] ระบบดรอปไอเทม 3 ช่อง
     // ---------------------------------------------------------
-    [Header("Drops")]
-    public GameObject ammoPrefab;
+   [Header("Drops")]
+    public float dropYOffset = 0.5f; // <--- [เพิ่มใหม่] ปรับความสูงของไอเทมตอนดรอป (ถ้าจมดินให้เพิ่มเลขนี้)
+
+    public GameObject ammoPrefab; 
     [Range(0f, 100f)] public float dropChance = 100f;
 
     [Space(10)]
-    public GameObject item2Prefab;
+    public GameObject item2Prefab; 
     [Range(0f, 100f)] public float item2DropChance = 50f;
 
     [Space(10)]
-    public GameObject item3Prefab;
+    public GameObject item3Prefab; 
     [Range(0f, 100f)] public float item3DropChance = 25f;
 
     [Header("Targeting")]
@@ -231,6 +233,7 @@ public class EnemyMachineGunAI : MonoBehaviour
 
         if (anim != null) anim.SetTrigger("Die");
         PlaySound(dieSound);
+        Destroy(gameObject, 10f);
 
         // ---------------------------------------------------------
         // [ADDED] เรียกฟังก์ชันดรอปของทั้ง 3 ชิ้น
@@ -243,26 +246,28 @@ public class EnemyMachineGunAI : MonoBehaviour
     // ---------------------------------------------------------
     // [ADDED] ฟังก์ชันจัดการการดรอปของแบบแนบติดพื้น + สุ่มตำแหน่งกระจายตัว
     // ---------------------------------------------------------
-    private void TryDropItem(GameObject itemPrefab, float chance)
+   private void TryDropItem(GameObject itemPrefab, float chance)
     {
-        if (itemPrefab == null) return;
+        if (itemPrefab == null) return; 
 
         if (Random.Range(0f, 100f) <= chance)
         {
             Vector3 dropPosition = transform.position;
 
             RaycastHit hit;
-            if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out hit, 5f))
+            // ยิง Raycast หาระดับพื้น
+            if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out hit, 10f))
             {
-                dropPosition = hit.point + (Vector3.up * 0.1f);
+                // ใช้ค่า dropYOffset ยกลอยขึ้นมา เพื่อไม่ให้โมเดลจมดิน
+                dropPosition = hit.point + (Vector3.up * dropYOffset); 
             }
 
-            // สุ่มตำแหน่งกระจายตัวเล็กน้อย
-            Vector2 randomSpread = Random.insideUnitCircle * 0.5f;
+            // สุ่มตำแหน่งกระจายตัวแนวราบ
+            Vector2 randomSpread = Random.insideUnitCircle * 1.0f; // ขยายวงกระจายให้กว้างขึ้นนิดนึง
             dropPosition += new Vector3(randomSpread.x, 0, randomSpread.y);
 
             Instantiate(itemPrefab, dropPosition, Quaternion.identity);
-            Debug.Log($"ดรอป {itemPrefab.name} ที่พื้นแล้ว!");
+            Debug.Log($"ดรอป {itemPrefab.name} สำเร็จ!");
         }
     }
 

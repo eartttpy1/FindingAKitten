@@ -5,35 +5,44 @@ using System.Collections;
 public class EnemyBossLaserAI : MonoBehaviour
 {
     [Header("Stats")]
-    public float maxHealth = 500f; // เลือดบอสต้องเยอะ!
+    public float maxHealth = 500f; 
     private float currentHealth;
-    public float moveSpeed = 2.0f; // บอสมักจะเดินช้าแต่น่าเกรงขาม
+    public float moveSpeed = 2.0f; 
 
     [Header("Combat (Laser)")]
-    public float attackRange = 20f;       // ระยะทำการเลเซอร์ (ไกลมาก)
-    public float chargeTime = 1.5f;       // เวลาชาร์จพลังก่อนยิง (ให้ผู้เล่นมีเวลาหลบ)
-    public float laserDuration = 2.0f;    // ระยะเวลายิงเลเซอร์ค้างไว้
-    public float laserDamagePerTick = 10f;// ดาเมจต่อครั้งที่โดนเลเซอร์
-    public float damageTickRate = 0.2f;   // โดนดาเมจทุกๆ 0.2 วินาที (ถ้าแช่ในเลเซอร์)
-    public float attackCooldown = 3.0f;   // คูลดาวน์หลังยิงเสร็จ
+    public float attackRange = 20f;       
+    public float chargeTime = 1.5f;       
+    public float laserDuration = 2.0f;    
+    public float laserDamagePerTick = 10f;
+    public float damageTickRate = 0.2f;   
+    public float attackCooldown = 3.0f;   
 
     private float nextDamageTick;
-    private bool isAttacking = false;     // กำลังชาร์จหรือยิงเลเซอร์อยู่ไหม
+    private bool isAttacking = false;     
 
     [Header("Laser Setup")]
-    public LineRenderer laserLine;        // ** เส้นเลเซอร์ **
+    public LineRenderer laserLine;        
     public Transform firePoint;
 
-    [Header("Senses")]
-    public float sightRange = 30f;
-    public float fieldOfView = 120f;
-    public Transform player;
-    public Collider playerCollider;
+    [Header("Phase 2 (Summoning)")]
+    public GameObject minionPrefab;       
+    public float summonCooldown = 15f;    
+    public float summonSpawnRadius = 3f;  
+    public ParticleSystem summonEffect;   
+    // ---------------------------------------------------------
+    // [เพิ่มใหม่] ตัวแปรเสียงตอนเสกลูกน้อง
+    // ---------------------------------------------------------
+    public AudioClip summonSound;         
+
+    private bool isPhase2 = false;
+    private float nextSummonTime;
 
     // ---------------------------------------------------------
     // [ADDED] ระบบดรอปไอเทม 3 ช่อง
     // ---------------------------------------------------------
     [Header("Drops")]
+    public float dropYOffset = 0.5f; // <--- [เพิ่มใหม่] ปรับความสูงของไอเทมตอนดรอป (ถ้าจมดินให้เพิ่มเลขนี้)
+
     public GameObject ammoPrefab; 
     [Range(0f, 100f)] public float dropChance = 100f;
 
@@ -45,19 +54,24 @@ public class EnemyBossLaserAI : MonoBehaviour
     public GameObject item3Prefab; 
     [Range(0f, 100f)] public float item3DropChance = 25f;
 
+    [Header("Senses")]
+    public float sightRange = 30f;
+    public float fieldOfView = 120f;
+    public Transform player;
+    public Collider playerCollider;
+
     [Header("Audio & Voice Lines")]
     public AudioSource audioSource;
     public AudioClip spotSound;
-    public AudioClip chargeLaserSound; // เสียงตอนกำลังชาร์จ (ถ้ามี)
-    public AudioClip fireLaserSound;   // เสียงตอนยิงเลเซอร์
+    public AudioClip chargeLaserSound; 
+    public AudioClip fireLaserSound;   
     public AudioClip hitSound;
 
     [Header("Boss Voice Lines")]
-    public AudioClip voiceLine90; // เสียงตอนเลือดลดไป 10% (เหลือ 90%)
-    public AudioClip voiceLine50; // เสียงตอนเลือดเหลือ 50%
-    public AudioClip dieSound;    // เสียงตอนตาย (0%)
+    public AudioClip voiceLine90; 
+    public AudioClip voiceLine50; 
+    public AudioClip dieSound;    
 
-    // เช็คว่าเล่นเสียงไปหรือยัง จะได้ไม่เล่นซ้ำรัวๆ
     private bool hasPlayed90 = false;
     private bool hasPlayed50 = false;
 
@@ -77,7 +91,7 @@ public class EnemyBossLaserAI : MonoBehaviour
 
         if (laserLine != null)
         {
-            laserLine.enabled = false; // ปิดเลเซอร์ไว้ก่อนตอนเริ่ม
+            laserLine.enabled = false; 
             laserLine.useWorldSpace = true;
         }
 
@@ -92,10 +106,14 @@ public class EnemyBossLaserAI : MonoBehaviour
     {
         if (isDead || player == null) return;
 
+        if (isPhase2 && Time.time >= nextSummonTime)
+        {
+            SummonMinions();
+        }
+
         bool isMoving = agent.velocity.magnitude > 0.1f;
         if (anim != null) anim.SetBool("isMoving", isMoving);
 
-        // ถ้ากำลังโจมตี (ชาร์จ/ยิงเลเซอร์) ไม่ต้องเดิน ให้ยืนนิ่งๆ และหันหน้าหาผู้เล่น
         if (isAttacking)
         {
             agent.isStopped = true;
@@ -145,7 +163,7 @@ public class EnemyBossLaserAI : MonoBehaviour
         if (distance <= attackRange)
         {
             agent.isStopped = true;
-            StartCoroutine(LaserAttackRoutine()); // เริ่มกระบวนการยิงเลเซอร์
+            StartCoroutine(LaserAttackRoutine());
         }
         else
         {
@@ -159,26 +177,33 @@ public class EnemyBossLaserAI : MonoBehaviour
         Vector3 lookPos = player.position;
         lookPos.y = transform.position.y;
 
-        // ค่อยๆ หันหน้าไปหาผู้เล่น (ให้เลเซอร์ส่ายตามได้นิดหน่อย)
         Quaternion targetRotation = Quaternion.LookRotation(lookPos - transform.position);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
     }
 
-    // ---------------------------------------------------------
-    // ระบบยิงเลเซอร์ (ชาร์จ -> ยิงค้าง -> พัก)
-    // ---------------------------------------------------------
+    private void ClearAnimationTriggers()
+    {
+        if (anim != null)
+        {
+            anim.ResetTrigger("ChargeLaser");
+            anim.ResetTrigger("FireLaser");
+            anim.SetBool("isMoving", false); 
+        }
+    }
+
     private IEnumerator LaserAttackRoutine()
     {
         isAttacking = true;
 
-        // 1. ช่วงชาร์จพลัง
+        ClearAnimationTriggers(); 
+
         if (anim != null) anim.SetTrigger("ChargeLaser");
         PlaySound(chargeLaserSound);
-        // (คุณสามารถใส่ Particle System ชาร์จพลังตรง FirePoint ได้ที่นี่)
 
         yield return new WaitForSeconds(chargeTime);
 
-        // 2. ช่วงยิงเลเซอร์
+        ClearAnimationTriggers(); 
+
         if (anim != null) anim.SetTrigger("FireLaser");
         PlaySound(fireLaserSound);
 
@@ -193,49 +218,50 @@ public class EnemyBossLaserAI : MonoBehaviour
 
             if (laserLine != null && firePoint != null)
             {
-                // จุดเริ่มต้นเลเซอร์คือปากกระบอก
                 laserLine.SetPosition(0, firePoint.position);
 
-                // ยิง Raycast ไปข้างหน้า เพื่อหาจุดสิ้นสุดเลเซอร์ (ชนอะไรไหม?)
                 RaycastHit hit;
-                if (Physics.Raycast(firePoint.position, firePoint.forward, out hit, attackRange))
+                if (Physics.Raycast(firePoint.position, firePoint.forward, out hit, attackRange, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
                 {
-                    // เลเซอร์หยุดตรงที่ชน
                     laserLine.SetPosition(1, hit.point);
+                    bool isHitPlayer = hit.transform.CompareTag("Player") || hit.transform.root.CompareTag("Player");
 
-                    // ถ้าชน Player ให้ทำดาเมจเป็นรอบๆ (Tick)
-                    if (hit.transform.CompareTag("Player") && Time.time >= nextDamageTick)
+                    if (isHitPlayer)
                     {
-                        PlayerHealth pHealth = hit.transform.GetComponent<PlayerHealth>();
-                        if (pHealth == null) pHealth = hit.transform.root.GetComponent<PlayerHealth>();
-
-                        if (pHealth != null)
+                        if (Time.time >= nextDamageTick)
                         {
-                            pHealth.TakeDamage(laserDamagePerTick);
-                            nextDamageTick = Time.time + damageTickRate; // เซ็ตเวลาโดนดาเมจครั้งต่อไป
+                            PlayerHealth pHealth = hit.transform.GetComponent<PlayerHealth>();
+                            if (pHealth == null) pHealth = hit.transform.root.GetComponent<PlayerHealth>();
+
+                            if (pHealth != null)
+                            {
+                                pHealth.TakeDamage(laserDamagePerTick);
+                                nextDamageTick = Time.time + damageTickRate; 
+                            }
                         }
+                    }
+                    else if (hit.transform.gameObject == this.gameObject)
+                    {
+                        laserLine.SetPosition(1, firePoint.position + firePoint.forward * attackRange);
                     }
                 }
                 else
                 {
-                    // ถ้าไม่ชนอะไรเลย ให้ทะลุไปจนสุดระยะ
                     laserLine.SetPosition(1, firePoint.position + firePoint.forward * attackRange);
                 }
             }
-            yield return null; // รอเฟรมถัดไป
+            yield return null; 
         }
 
-        // 3. ปิดเลเซอร์ และเข้าสู่ช่วง Cooldown
         if (laserLine != null) laserLine.enabled = false;
+
+        ClearAnimationTriggers();
 
         yield return new WaitForSeconds(attackCooldown);
 
         isAttacking = false;
     }
 
-    // ---------------------------------------------------------
-    // ระบบโดนโจมตี & เสียงบอส
-    // ---------------------------------------------------------
     public void TakeDamage(float amount)
     {
         if (isDead) return;
@@ -251,36 +277,66 @@ public class EnemyBossLaserAI : MonoBehaviour
 
     private void CheckBossVoiceLines()
     {
-        // คำนวณเปอร์เซ็นต์เลือด (0.0 ถึง 1.0)
         float healthPercent = currentHealth / maxHealth;
 
-        // ถ้าเลือดต่ำกว่าหรือเท่ากับ 90% (ลด 10%) และยังไม่เคยพูดประโยคนี้
         if (healthPercent <= 0.9f && healthPercent > 0.5f && !hasPlayed90)
         {
             PlaySound(voiceLine90);
             hasPlayed90 = true;
         }
-        // ถ้าเลือดต่ำกว่าหรือเท่ากับ 50% และยังไม่เคยพูดประโยคนี้
         else if (healthPercent <= 0.5f && healthPercent > 0f && !hasPlayed50)
         {
             PlaySound(voiceLine50);
             hasPlayed50 = true;
+
+            if (!isPhase2)
+            {
+                isPhase2 = true;
+                nextSummonTime = Time.time; 
+                Debug.Log("Boss entered Phase 2! Summoning minions...");
+            }
         }
+    }
+
+    private void SummonMinions()
+    {
+        if (minionPrefab == null) return;
+
+        Vector3 leftPos1 = transform.position - transform.right * summonSpawnRadius;
+        Vector3 leftPos2 = transform.position - transform.right * (summonSpawnRadius + 2f);
+        Vector3 rightPos1 = transform.position + transform.right * summonSpawnRadius;
+        Vector3 rightPos2 = transform.position + transform.right * (summonSpawnRadius + 2f);
+
+        if (summonEffect != null) summonEffect.Play();
+
+        // ---------------------------------------------------------
+        // [เพิ่มใหม่] เล่นเสียงตอนที่เสกลูกน้องสำเร็จ
+        // ---------------------------------------------------------
+        PlaySound(summonSound);
+
+        Instantiate(minionPrefab, leftPos1, transform.rotation);
+        Instantiate(minionPrefab, leftPos2, transform.rotation);
+        Instantiate(minionPrefab, rightPos1, transform.rotation);
+        Instantiate(minionPrefab, rightPos2, transform.rotation);
+
+        nextSummonTime = Time.time + summonCooldown;
     }
 
     private void Die()
     {
+        if (isDead) return; 
         isDead = true;
         agent.isStopped = true;
         GetComponent<Collider>().enabled = false;
 
         StopAllCoroutines();
-        if (laserLine != null) laserLine.enabled = false; // ปิดเลเซอร์ตอนตาย
+        if (laserLine != null) laserLine.enabled = false; 
 
+        ClearAnimationTriggers();
         if (anim != null) anim.SetTrigger("Die");
 
-        // เสียงตอนเลือด 0% (ตาย)
         PlaySound(dieSound);
+        Destroy(gameObject, 10f);
 
         // ---------------------------------------------------------
         // [ADDED] เรียกฟังก์ชันดรอปของทั้ง 3 ชิ้น
@@ -293,7 +349,7 @@ public class EnemyBossLaserAI : MonoBehaviour
     // ---------------------------------------------------------
     // [ADDED] ฟังก์ชันจัดการการดรอปของแบบแนบติดพื้น + สุ่มตำแหน่งกระจายตัว
     // ---------------------------------------------------------
-    private void TryDropItem(GameObject itemPrefab, float chance)
+   private void TryDropItem(GameObject itemPrefab, float chance)
     {
         if (itemPrefab == null) return; 
 
@@ -302,17 +358,19 @@ public class EnemyBossLaserAI : MonoBehaviour
             Vector3 dropPosition = transform.position;
 
             RaycastHit hit;
-            if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out hit, 5f))
+            // ยิง Raycast หาระดับพื้น
+            if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out hit, 10f))
             {
-                dropPosition = hit.point + (Vector3.up * 0.1f); 
+                // ใช้ค่า dropYOffset ยกลอยขึ้นมา เพื่อไม่ให้โมเดลจมดิน
+                dropPosition = hit.point + (Vector3.up * dropYOffset); 
             }
 
-            // สุ่มตำแหน่งกระจายตัวเล็กน้อย
-            Vector2 randomSpread = Random.insideUnitCircle * 0.5f;
+            // สุ่มตำแหน่งกระจายตัวแนวราบ
+            Vector2 randomSpread = Random.insideUnitCircle * 1.0f; // ขยายวงกระจายให้กว้างขึ้นนิดนึง
             dropPosition += new Vector3(randomSpread.x, 0, randomSpread.y);
 
             Instantiate(itemPrefab, dropPosition, Quaternion.identity);
-            Debug.Log($"ดรอป {itemPrefab.name} ที่พื้นแล้ว!");
+            Debug.Log($"ดรอป {itemPrefab.name} สำเร็จ!");
         }
     }
 

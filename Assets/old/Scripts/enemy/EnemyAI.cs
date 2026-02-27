@@ -160,6 +160,7 @@ public class EnemyAI : MonoBehaviour
         agent.isStopped = true;
         agent.ResetPath(); // ยกเลิกเส้นทางเดิน
         PlaySound(dieSound);
+        Destroy(gameObject, 10f);
 
         GetComponent<Collider>().enabled = false;
 
@@ -203,6 +204,7 @@ public class EnemyAI : MonoBehaviour
             audioSource.PlayOneShot(clip);
         }
     }
+
 
     private void OnDrawGizmosSelected()
     {

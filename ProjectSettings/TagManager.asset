@@ -13,6 +13,8 @@ TagManager:
   - EnemyAss
   - Bullet
   - box
+  - Ground
+  - Wall
   layers:
   - Default
   - TransparentFX

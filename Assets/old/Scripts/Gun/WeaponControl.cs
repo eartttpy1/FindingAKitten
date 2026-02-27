@@ -2,18 +2,18 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using UnityEngine.UI;
-using System.Collections; // จำเป็นต้องมีบรรทัดนี้สำหรับ Coroutine
+using System.Collections;
 
 public class WeaponControl : MonoBehaviour
 {
     [Header("Components")]
-    [SerializeField] private Animator animator; // ตัวคุม Animation ปืน (UI)
+    [SerializeField] private Animator animator;
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private Transform firePoint;
     [SerializeField] private Transform cameraTransform;
 
     [Header("UI - HUD")]
-    [SerializeField] private RectTransform weaponHolder; // **ลากตัว WeaponHolder (ตัวแม่ของรูปปืน) มาใส่ตรงนี้**
+    [SerializeField] private RectTransform weaponHolder;
     [SerializeField] private Image crosshairImage;
     [SerializeField] private Image weaponIconImage;
     [SerializeField] private Text ammoText;
@@ -23,14 +23,14 @@ public class WeaponControl : MonoBehaviour
     [SerializeField] private LayerMask enemyLayer;
 
     [Header("Reload Animation")]
-    [SerializeField] private float reloadDropAmount = 150f; // ระยะที่ปืนจะมุดลง
-    [SerializeField] private float reloadTime = 1.0f;       // เวลารีโหลด
+    [SerializeField] private float reloadDropAmount = 150f;
+    [SerializeField] private float reloadTime = 1.0f;
 
     [Header("Sound Clips")]
     [SerializeField] private AudioClip punchSound;
     [SerializeField] private AudioClip punchHitSound;
-    [SerializeField] private AudioClip pistolSound;      // เปลี่ยนชื่อเป็น Pistol
-    [SerializeField] private AudioClip machineGunSound;  // **เพิ่มเสียงปืนกล**
+    [SerializeField] private AudioClip pistolSound;
+    [SerializeField] private AudioClip machineGunSound;
     [SerializeField] private AudioClip shotgunSound;
     [SerializeField] private AudioClip reloadSound;
     [SerializeField] private AudioClip dryFireSound;
@@ -39,10 +39,13 @@ public class WeaponControl : MonoBehaviour
     public class Weapon
     {
         public string name;
-        public int weaponID; // ID สำหรับส่งให้ Animator (0,1,2,3)
+        public int weaponID;
         public Sprite crosshairSprite;
         public Sprite weaponIcon;
-        public bool isAutomatic; // ติ๊กถูก = กดค้างยิงรัว
+        public bool isAutomatic;
+        
+        // [NEW] เพิ่มตัวแปรเช็คว่าปืนนี้เก็บมาหรือยัง
+        public bool isUnlocked; 
 
         [Header("Ammo System")]
         public int clipSize;
@@ -67,12 +70,11 @@ public class WeaponControl : MonoBehaviour
 
     private int currentWeaponIndex = 0;
     private float nextFireTime = 0f;
-    private bool isReloading = false;        // เช็คว่ากำลังรีโหลดอยู่ไหม
-    private Vector2 originalHolderPosition;  // จำตำแหน่งเดิมของปืน
+    private bool isReloading = false;
+    private Vector2 originalHolderPosition;
 
     private void Start()
     {
-        // จำตำแหน่งเริ่มต้นของ WeaponHolder ไว้ (เพื่อเวลามุดลงจะได้เด้งกลับมาถูกที่)
         if (weaponHolder != null) originalHolderPosition = weaponHolder.anchoredPosition;
 
         foreach (var w in weapons)
@@ -81,12 +83,16 @@ public class WeaponControl : MonoBehaviour
             w.currentReserve = w.maxReserve / 2;
         }
 
-        
+        // [NEW] บังคับให้หมัด (Element 0) ปลดล็อคเสมอ และถือหมัดเป็นค่าเริ่มต้น
+        if (weapons.Count > 0)
+        {
+            weapons[0].isUnlocked = true; 
+            SwitchWeapon(0);
+        }
     }
 
     private void Update()
     {
-        // ถ้ารีโหลดอยู่ ห้ามทำอะไรทั้งนั้น
         if (isReloading) return;
 
         HandleWeaponSwitching();
@@ -96,7 +102,6 @@ public class WeaponControl : MonoBehaviour
 
     private void HandleWeaponSwitching()
     {
-        // เพิ่มปุ่มเลข 4
         if (Keyboard.current.digit1Key.wasPressedThisFrame) SwitchWeapon(0);
         if (Keyboard.current.digit2Key.wasPressedThisFrame) SwitchWeapon(1);
         if (Keyboard.current.digit3Key.wasPressedThisFrame) SwitchWeapon(2);
@@ -106,12 +111,17 @@ public class WeaponControl : MonoBehaviour
     private void SwitchWeapon(int index)
     {
         if (index < 0 || index >= weapons.Count) return;
+
+        // [NEW] เช็คว่าปืนนี้ปลดล็อค(เก็บมา)หรือยัง ถ้ายังให้หยุดคำสั่งเลย
+        if (!weapons[index].isUnlocked)
+        {
+            Debug.Log($"ปืน {weapons[index].name} ยังไม่ได้ถูกเก็บ!");
+            return; 
+        }
+
         currentWeaponIndex = index;
 
-        // ส่ง ID ไปบอก Animator เพื่อเปลี่ยนรูปปืนตอนถือ (Idle)
         animator.SetInteger("WeaponID", weapons[index].weaponID);
-
-        // สั่งให้ Animator รู้ว่า "ฉันกดเปลี่ยนปืนแล้วนะ!" (ทำแค่ครั้งเดียว)
         animator.SetTrigger("Switch");
 
         UpdateHUD();
@@ -122,7 +132,6 @@ public class WeaponControl : MonoBehaviour
         Weapon currentWep = weapons[currentWeaponIndex];
         bool isShooting = false;
 
-        // เช็คการกดค้าง หรือ กดทีละนัด
         if (currentWep.isAutomatic)
         {
             if (Mouse.current.leftButton.isPressed && Time.time >= nextFireTime) isShooting = true;
@@ -134,13 +143,11 @@ public class WeaponControl : MonoBehaviour
 
         if (isShooting)
         {
-            // เช็คกระสุนหมด (ยกเว้นหมัด)
             if (currentWeaponIndex != 0 && currentWep.currentClip <= 0)
             {
                 if (Mouse.current.leftButton.wasPressedThisFrame && dryFireSound)
                 {
                     audioSource.PlayOneShot(dryFireSound);
-                    // TryReload(); // เปิดบรรทัดนี้ถ้าอยากให้ Auto Reload
                 }
                 return;
             }
@@ -155,22 +162,20 @@ public class WeaponControl : MonoBehaviour
     private void PunchAttack()
     {
         nextFireTime = Time.time + weapons[0].fireRate;
-
-        // สั่ง Animator เล่นท่ายิง/ต่อย
         animator.SetTrigger("Shoot");
-
         if (punchSound) audioSource.PlayOneShot(punchSound);
 
         RaycastHit hit;
         if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, punchRange, enemyLayer))
         {
             if (punchHitSound) audioSource.PlayOneShot(punchHitSound);
-            // hit.collider.GetComponent<EnemyHealth>().TakeDamage(10);
-            EnemyAI enemy = hit.collider.GetComponent<EnemyAI>();
-            if (enemy != null)
-            {
-                enemy.TakeDamage(20); // ต่อยแรง 20
-            }
+
+            // เช็คทีละสคริปต์
+            if (hit.collider.TryGetComponent(out EnemyAI e1)) e1.TakeDamage(20);
+            else if (hit.collider.TryGetComponent(out EnemyShooterAI e2)) e2.TakeDamage(20);
+            else if (hit.collider.TryGetComponent(out EnemyMachineGunAI e3)) e3.TakeDamage(20);
+            else if (hit.collider.TryGetComponent(out EnemyShotgunAI e4)) e4.TakeDamage(20);
+            else if (hit.collider.TryGetComponent(out EnemyBossLaserAI e5)) e5.TakeDamage(20);
         }
     }
 
@@ -178,23 +183,17 @@ public class WeaponControl : MonoBehaviour
     {
         nextFireTime = Time.time + weapon.fireRate;
         weapon.currentClip--;
-
-        // สั่ง Animator เล่นท่ายิง (เปลี่ยนรูปปืนเป็นท่ายิง)
         animator.SetTrigger("Shoot");
-
         PlayWeaponSound();
 
-        // คำนวณจุดเล็ง
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
         RaycastHit hit;
         Vector3 targetPoint = Physics.Raycast(ray, out hit) ? hit.point : ray.GetPoint(75);
 
-        // Loop สร้างกระสุน (รองรับลูกซองที่ออกหลายนัด)
         for (int i = 0; i < weapon.bulletsPerShot; i++)
         {
             Vector3 direction = targetPoint - firePoint.position;
 
-            // คำนวณแรงดีด/กระจาย
             if (weapon.spread > 0)
             {
                 float xSpread = Random.Range(-weapon.spread, weapon.spread);
@@ -202,16 +201,12 @@ public class WeaponControl : MonoBehaviour
                 direction += new Vector3(xSpread, ySpread, 0);
             }
 
-            // สร้างลูกกระสุน (Prefab)
             GameObject currentBullet = Instantiate(weapon.bulletPrefab, firePoint.position, Quaternion.LookRotation(direction));
             Rigidbody rb = currentBullet.GetComponent<Rigidbody>();
             if (rb != null) rb.linearVelocity = direction.normalized * weapon.bulletSpeed; 
         }
     }
 
-    // ---------------------------------------------------------
-    //  ระบบรีโหลด (Reload Logic) - ใช้ Coroutine ทำ Animation
-    // ---------------------------------------------------------
     private void HandleReload()
     {
         if (Keyboard.current.rKey.wasPressedThisFrame)
@@ -223,21 +218,15 @@ public class WeaponControl : MonoBehaviour
     public void TryReload()
     {
         Weapon w = weapons[currentWeaponIndex];
-
-        // 1. เช็คเงื่อนไข: หมัดห้ามโหลด / กระสุนเต็ม / ไม่มีสำรอง
         if (currentWeaponIndex == 0 || w.currentClip >= w.clipSize || w.currentReserve <= 0) return;
-
-        // 2. เริ่ม Animation
         StartCoroutine(ReloadRoutine(w));
     }
 
     private IEnumerator ReloadRoutine(Weapon w)
     {
-        isReloading = true; // ล็อคปืน
-
+        isReloading = true; 
         if (reloadSound) audioSource.PlayOneShot(reloadSound);
 
-        // --- Animation: เลื่อนปืนลง ---
         Vector2 startPos = originalHolderPosition;
         Vector2 downPos = startPos - new Vector2(0, reloadDropAmount);
 
@@ -246,32 +235,41 @@ public class WeaponControl : MonoBehaviour
 
         while (elapsed < halfDuration)
         {
-            if (weaponHolder != null)
-                weaponHolder.anchoredPosition = Vector2.Lerp(startPos, downPos, elapsed / halfDuration);
+            if (weaponHolder != null) weaponHolder.anchoredPosition = Vector2.Lerp(startPos, downPos, elapsed / halfDuration);
             elapsed += Time.deltaTime;
             yield return null;
         }
         if (weaponHolder != null) weaponHolder.anchoredPosition = downPos;
 
-        // --- เติมกระสุน (จังหวะที่ปืนอยู่ข้างล่างสุด) ---
         int amountNeeded = w.clipSize - w.currentClip;
         int amountToReload = Mathf.Min(amountNeeded, w.currentReserve);
         w.currentClip += amountToReload;
         w.currentReserve -= amountToReload;
         UpdateHUD();
 
-        // --- Animation: เลื่อนปืนกลับขึ้นมา ---
         elapsed = 0f;
         while (elapsed < halfDuration)
         {
-            if (weaponHolder != null)
-                weaponHolder.anchoredPosition = Vector2.Lerp(downPos, startPos, elapsed / halfDuration);
+            if (weaponHolder != null) weaponHolder.anchoredPosition = Vector2.Lerp(downPos, startPos, elapsed / halfDuration);
             elapsed += Time.deltaTime;
             yield return null;
         }
         if (weaponHolder != null) weaponHolder.anchoredPosition = startPos;
 
-        isReloading = false; // ปลดล็อค
+        isReloading = false; 
+    }
+
+    // [NEW] ฟังก์ชันสำหรับให้ไอเทมปืนบนพื้น สั่งปลดล็อคปืน
+    public void UnlockWeapon(int weaponIndex)
+    {
+        if (weaponIndex >= 0 && weaponIndex < weapons.Count)
+        {
+            weapons[weaponIndex].isUnlocked = true;
+            Debug.Log("เก็บปืนสำเร็จ! ปลดล็อคปืน: " + weapons[weaponIndex].name);
+
+            // เก็บได้ปุ๊บ สลับไปถือปืนนั้นทันที
+            SwitchWeapon(weaponIndex); 
+        }
     }
 
     public void AddAmmo(int weaponIndex, int amount)
@@ -310,10 +308,9 @@ public class WeaponControl : MonoBehaviour
     {
         switch (currentWeaponIndex)
         {
-            // Case 0 คือหมัด (เล่นเสียงในฟังก์ชัน PunchAttack แล้ว)
-            case 1: if (pistolSound) audioSource.PlayOneShot(pistolSound); break;       // ปืนพก
-            case 2: if (machineGunSound) audioSource.PlayOneShot(machineGunSound); break; // ปืนกล
-            case 3: if (shotgunSound) audioSource.PlayOneShot(shotgunSound); break;     // ลูกซอง
+            case 1: if (pistolSound) audioSource.PlayOneShot(pistolSound); break;       
+            case 2: if (machineGunSound) audioSource.PlayOneShot(machineGunSound); break; 
+            case 3: if (shotgunSound) audioSource.PlayOneShot(shotgunSound); break;     
         }
     }
 }
