@@ -1,0 +1,11 @@
+Model Information:
+* title:	Steel Sliding Door
+* source:	https://sketchfab.com/3d-models/steel-sliding-door-97d25ab8c26342439bd647bda34a7e48
+* author:	kirkegaard (https://sketchfab.com/kirkegaard)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Steel Sliding Door" (https://sketchfab.com/3d-models/steel-sliding-door-97d25ab8c26342439bd647bda34a7e48) by kirkegaard (https://sketchfab.com/kirkegaard) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

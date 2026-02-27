@@ -1,0 +1,11 @@
+Model Information:
+* title:	3D Cat Paw Obstacle
+* source:	https://sketchfab.com/3d-models/3d-cat-paw-obstacle-ccc7e7eabb6243bdaab757746a8d947f
+* author:	KristinaPage (https://sketchfab.com/KristinaPage)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "3D Cat Paw Obstacle" (https://sketchfab.com/3d-models/3d-cat-paw-obstacle-ccc7e7eabb6243bdaab757746a8d947f) by KristinaPage (https://sketchfab.com/KristinaPage) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

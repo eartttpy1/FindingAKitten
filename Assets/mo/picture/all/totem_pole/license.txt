@@ -1,0 +1,11 @@
+Model Information:
+* title:	Totem Pole
+* source:	https://sketchfab.com/3d-models/totem-pole-a2b21162ea3f4630b78a4aff893d269e
+* author:	jfactory (https://sketchfab.com/jfactory)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Totem Pole" (https://sketchfab.com/3d-models/totem-pole-a2b21162ea3f4630b78a4aff893d269e) by jfactory (https://sketchfab.com/jfactory) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Bengal Cat
+* source:	https://sketchfab.com/3d-models/bengal-cat-6d82596b5db94f7b9093814a4a88caa9
+* author:	ItsKrish7 (https://sketchfab.com/ItsKrish7)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Bengal Cat" (https://sketchfab.com/3d-models/bengal-cat-6d82596b5db94f7b9093814a4a88caa9) by ItsKrish7 (https://sketchfab.com/ItsKrish7) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

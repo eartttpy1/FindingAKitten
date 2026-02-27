@@ -1,0 +1,11 @@
+Model Information:
+* title:	Wall Lantern
+* source:	https://sketchfab.com/3d-models/wall-lantern-f57db125f5e947db91c082d71c868610
+* author:	VanadiumStudio (https://sketchfab.com/vjprojects2020)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Wall Lantern" (https://sketchfab.com/3d-models/wall-lantern-f57db125f5e947db91c082d71c868610) by VanadiumStudio (https://sketchfab.com/vjprojects2020) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
