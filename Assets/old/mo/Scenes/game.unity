@@ -18684,7 +18684,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11f2ae7ca94585a479986da5f5c109b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TimeTravelManager
-  isPast: 1
+  isPast: 0
   pastParent: {fileID: 996450976247282205}
   futureParent: {fileID: 3090658638627560031}
   pastVolume: {fileID: 7434709735207735596}
@@ -18692,7 +18692,7 @@ MonoBehaviour:
   whiteFlashUI: {fileID: 127208892}
   flashDuration: 0.5
   audioSource: {fileID: 1633757796}
-  timeTravelSound: {fileID: 0}
+  timeTravelSound: {fileID: 8300000, guid: 9a97c15b66d1fa94c9be6b306bef8a1e, type: 3}
 --- !u!4 &1633757798
 Transform:
   m_ObjectHideFlags: 0
