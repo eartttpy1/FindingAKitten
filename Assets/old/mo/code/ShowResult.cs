@@ -8,6 +8,8 @@ public class ShowResult : MonoBehaviour
 
     void Start()
     {
+        Cursor.visible = true; 
+        Cursor.lockState = CursorLockMode.None;
         float currentTime = TimeKeeper.ElapsedTime;
         
         // 1. แสดงเวลาปัจจุบัน

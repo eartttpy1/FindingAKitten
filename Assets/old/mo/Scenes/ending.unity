@@ -1785,8 +1785,8 @@ MonoBehaviour:
   playerObject: {fileID: 8855723895277145832}
   inputActions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   YRotOnly: 0
-  sensX: 30
-  sensY: 30
+  sensX: 0.1
+  sensY: 0.1
   playerYRotation: 0
 --- !u!33 &162623454215835692
 MeshFilter:
@@ -7064,8 +7064,8 @@ Transform:
   m_GameObject: {fileID: 8135992106409402537}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.517, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_LocalPosition: {x: 0, y: 0.679, z: 0}
+  m_LocalScale: {x: 0.5, y: 0.662, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1535266535587151158}
@@ -20152,7 +20152,7 @@ Transform:
   m_GameObject: {fileID: 2685616279677508455}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.8, z: -0.128}
+  m_LocalPosition: {x: 0, y: 1.262, z: -0.128}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
