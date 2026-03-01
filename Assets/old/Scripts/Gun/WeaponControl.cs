@@ -132,6 +132,7 @@ public class WeaponControl : MonoBehaviour
         Weapon currentWep = weapons[currentWeaponIndex];
         bool isShooting = false;
 
+        // รับ Input การยิง
         if (currentWep.isAutomatic)
         {
             if (Mouse.current.leftButton.isPressed && Time.time >= nextFireTime) isShooting = true;
@@ -143,15 +144,29 @@ public class WeaponControl : MonoBehaviour
 
         if (isShooting)
         {
+            // ถ้าถือปืนอยู่ (ไม่ใช่หมัด) และกระสุนในแมกกาซีนหมด
             if (currentWeaponIndex != 0 && currentWep.currentClip <= 0)
             {
-                if (Mouse.current.leftButton.wasPressedThisFrame && dryFireSound)
+                // [แก้ไข] แทนที่จะเล่นเสียงแกร็กๆ ให้เช็คว่ามีกระสุนสำรองไหม
+                if (currentWep.currentReserve > 0)
                 {
-                    audioSource.PlayOneShot(dryFireSound);
+                    // ถ้ายิงแล้วกระสุนหมดแต่มีกระสุนสำรอง ให้ทำการรีโหลดอัตโนมัติ
+                    TryReload();
                 }
+                else
+                {
+                    // ถ้ากระสุนสำรองก็หมดเกลี้ยงจริงๆ ค่อยเล่นเสียงแกร็กๆ
+                    if (Mouse.current.leftButton.wasPressedThisFrame && dryFireSound)
+                    {
+                        audioSource.PlayOneShot(dryFireSound);
+                    }
+                }
+
+                // จบการทำงาน ไม่ต้องไปสั่งยิงต่อ
                 return;
             }
 
+            // ถ้ากระสุนยังมี หรือใช้หมัด ก็โจมตีตามปกติ
             if (currentWeaponIndex == 0) PunchAttack();
             else ShootGun(currentWep);
 
