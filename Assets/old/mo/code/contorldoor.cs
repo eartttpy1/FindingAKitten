@@ -7,6 +7,7 @@ public class controldoor : MonoBehaviour
     public PlayableDirector timeline2;
     public GameObject crystal1;
     public GameObject crystal2;
+    public Canvas Fcanvas;
     
 
     private bool isForward = true;
@@ -62,6 +63,7 @@ public class controldoor : MonoBehaviour
         if (other.CompareTag("Player")) // เช็คว่าสิ่งที่เข้ามาคือ Player (ต้องตั้ง Tag ที่ตัวละครด้วย)
         {
             isPlayerInside = true;
+            Fcanvas.enabled = true;
             Debug.Log("Player entered range");
         }
     }
@@ -72,6 +74,7 @@ public class controldoor : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             isPlayerInside = false;
+            Fcanvas.enabled = false;
             Debug.Log("Player left range");
         }
     }
