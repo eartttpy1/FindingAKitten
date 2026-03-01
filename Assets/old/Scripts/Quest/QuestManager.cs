@@ -49,7 +49,20 @@ public class QuestManager : MonoBehaviour
     {
         if (questText != null)
         {
-            questText.text = "ตามหาหนู: " + currentItems + " / " + requiredItems;
+            // เช็คว่าเก็บหนูครบหรือยัง
+            if (currentItems >= requiredItems)
+            {
+                // ถ้าครบแล้ว เปลี่ยนข้อความชี้เป้าหมายต่อไป
+                questText.text = "กลับไปที่จุดเริ่มต้น";
+
+                // (เสริม) ถ้าอยากให้ตัวหนังสือเปลี่ยนสีตอนเควสเสร็จด้วย ใช้คำสั่งนี้ได้ครับ (เอา // ออก)
+                // questText.color = Color.green; 
+            }
+            else
+            {
+                // ถ้ายังไม่ครบ ให้แสดงจำนวนแบบเดิม
+                questText.text = "ตามหาหนู: " + currentItems + " / " + requiredItems;
+            }
         }
     }
 }

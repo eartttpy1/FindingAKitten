@@ -10219,8 +10219,8 @@ MonoBehaviour:
   item3DropChance: 100
   sightRange: 30
   fieldOfView: 360
-  player: {fileID: 0}
-  playerCollider: {fileID: 0}
+  player: {fileID: 3127097342280453492}
+  playerCollider: {fileID: 5149622089519798583}
   audioSource: {fileID: 692986272}
   spotSound: {fileID: 8300000, guid: b26d9c64fc066094bbe87fc7203d1f00, type: 3}
   chargeLaserSound: {fileID: 8300000, guid: 22326760834118845a65761b390f0932, type: 3}
@@ -76170,8 +76170,8 @@ MonoBehaviour:
   item3DropChance: 100
   sightRange: 30
   fieldOfView: 360
-  player: {fileID: 0}
-  playerCollider: {fileID: 0}
+  player: {fileID: 3127097342280453492}
+  playerCollider: {fileID: 5149622089519798583}
   audioSource: {fileID: 7534610353548229909}
   spotSound: {fileID: 8300000, guid: b26d9c64fc066094bbe87fc7203d1f00, type: 3}
   chargeLaserSound: {fileID: 8300000, guid: 22326760834118845a65761b390f0932, type: 3}

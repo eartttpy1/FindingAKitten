@@ -129,6 +129,47 @@ public class EnemyBossLaserAI : MonoBehaviour
         }
     }
 
+    // ---------------------------------------------------------
+    // ทำงานเมื่อบอสถูกซ่อน (ตอนเราวาร์ปหนี)
+    // ---------------------------------------------------------
+    private void OnDisable()
+    {
+        // 1. ยกเลิกสถานะกำลังโจมตี
+        isAttacking = false;
+
+        // 2. ปิดเส้นเลเซอร์เผื่อมันค้าง
+        if (laserLine != null) laserLine.enabled = false;
+
+        // 3. หยุด Coroutine ทั้งหมดที่รันค้างอยู่
+        StopAllCoroutines();
+
+        // 4. รีเซ็ตแอนิเมชันให้กลับไปเป็นท่ายืนปกติ
+        ClearAnimationTriggers();
+    }
+
+    // ---------------------------------------------------------
+    // ทำงานเมื่อบอสถูกเปิดกลับมา (ตอนเราวาร์ปกลับมา)
+    // (ใส่รวมกับโค้ดแก้บัคศัตรูตายแล้วลุกขึ้นมายืน ที่เราเคยคุยกันครับ)
+    // ---------------------------------------------------------
+    private void OnEnable()
+    {
+        if (isDead)
+        {
+            if (anim != null) anim.Play("Die", 0, 1f);
+            if (agent != null) agent.enabled = false;
+            Collider col = GetComponent<Collider>();
+            if (col != null) col.enabled = false;
+        }
+        else
+        {
+            // ถ้ายังไม่ตาย ให้แน่ใจว่ามันสามารถเดินต่อได้
+            if (agent != null && agent.isOnNavMesh)
+            {
+                agent.isStopped = false;
+            }
+        }
+    }
+
     private bool CanSeePlayer(float distance)
     {
         if (distance > sightRange) return false;
@@ -309,15 +350,17 @@ public class EnemyBossLaserAI : MonoBehaviour
 
         if (summonEffect != null) summonEffect.Play();
 
-        // ---------------------------------------------------------
-        // [เพิ่มใหม่] เล่นเสียงตอนที่เสกลูกน้องสำเร็จ
-        // ---------------------------------------------------------
+        // เล่นเสียงตอนที่เสกลูกน้องสำเร็จ
         PlaySound(summonSound);
 
-        Instantiate(minionPrefab, leftPos1, transform.rotation);
-        Instantiate(minionPrefab, leftPos2, transform.rotation);
-        Instantiate(minionPrefab, rightPos1, transform.rotation);
-        Instantiate(minionPrefab, rightPos2, transform.rotation);
+        // ---------------------------------------------------------
+        // [แก้ไข] เพิ่ม transform.parent ไว้ด้านหลังสุดของคำสั่ง Instantiate
+        // เพื่อให้ลูกน้องถูกสร้างเข้าไปอยู่ใน Group เดียวกับตัวบอส
+        // ---------------------------------------------------------
+        Instantiate(minionPrefab, leftPos1, transform.rotation, transform.parent);
+        Instantiate(minionPrefab, leftPos2, transform.rotation, transform.parent);
+        Instantiate(minionPrefab, rightPos1, transform.rotation, transform.parent);
+        Instantiate(minionPrefab, rightPos2, transform.rotation, transform.parent);
 
         nextSummonTime = Time.time + summonCooldown;
     }
